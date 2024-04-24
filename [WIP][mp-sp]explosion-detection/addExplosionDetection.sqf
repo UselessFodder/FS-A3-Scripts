@@ -1,0 +1,40 @@
+/*
+	Author: UselessFodder
+	Purpose: Creates an event handler passed in object to detect when explosions larger
+		than a hand grenade go off near it.
+	Source: https://github.com/UselessFodder/FS-A3-Scripts
+	Last Updated: 24 April 2023
+	
+	Call: [targetObject] execVM "addExplosionDetection.sqf";
+	
+	Instructions: Copy this file into mission folder and call above command with the Object
+		you want to detect the explosion on as targetObject
+		
+		NOTE: Object must have hit detection enabled (e.g. units, vehicles, buildings with 
+		damage states, objects with hit states). ROCKS WILL NOT WORK. Suggestion: Use a
+		traffic cone with hideObject=TRUE near explosion detection location.
+		
+		NOTE2: Event Handler will execute code local to the object this is in the init
+		of. If its an object in mp, that will be the host/server. If its on a unit, it 
+		will be that player's local computer. If its on a vehicle, it will be the host/server
+		if no player is driving OR the player's local machine if they are driving
+*/
+
+params ["targetObject"];
+
+targetObject addEventHandler ["Explosion", {  
+	private _damage = _this select 1; 
+		if (_damage > 0.1) then { 
+		
+			/*
+			
+			ADD CODE TO EXECUTE AFTER EXPLOSION HERE
+			e.g. execVM "someScript.sqf";
+			
+			*/
+		
+			//debug line -- will only execute on local machine - see NOTE2
+			titleText ["This worked", "PLAIN"]; 
+	 
+	}; 
+}];
