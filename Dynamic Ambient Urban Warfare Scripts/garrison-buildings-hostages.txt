@@ -1,0 +1,118 @@
+//Halo Universe dynamic garrisoning script; remove the comments and slap it down into a server-only trigger to work.
+//Will automatically fill one building per group with enemies, having them guard the point until engaged at close range, at which point they will go out and kill folk
+//Requires LAMBs danger for hostage fleeing once freed.
+
+//Center of area to search for
+_center = getPos barcelonova_area_trigger; 
+_radius = 700; 
+
+//Minimum number of units per buildings
+_unit_num = 6; 
+
+//Restricted types of buildings
+_restricted_types = [];
+
+//Trigger areas where houses are not allowed to be used
+_restricted_markers = [eastern_beach_area, space_el_area, western_beach_area, parking_garage_area]; 
+ 
+private _buildings = nearestObjects [_center, ["house"], _radius] select { 
+  [_x, _unit_num] call BIS_fnc_isBuildingEnterable and {not (typeof _x in _restricted_types)}}; 
+ 
+//Number of groups to garrison in buildings 
+_num_groups = 5; 
+//Maximum number of enemies per building
+_max_per_building = 12;
+
+//Hostage unit classes to pick from
+_vip_units = ["OPTRE_UNSC_Navy_Soldier_Olive_Unarmed", "OPTRE_UNSC_Navy_Soldier_Blue_Unarmed", "OPTRE_UNSC_Navy_Soldier_Gray_Unarmed", "OPTRE_UNSC_Navy_Soldier_White_Unarmed", "OPTRE_UNSC_Navy_Soldier_Red_Unarmed", "OPTRE_UNSC_Navy_Officer_Dress", "OPTRE_ONI_Researcher", "OPTRE_UNSC_ONI_Soldier_Naval_Unarmed"];
+
+//Normal units to pick from
+_kosher_units_n = ["OPTRE_Jackal_SpecOps_F", "OPTRE_Jackal_SpecOps2_F",  "OPTRE_Jackal_SpecOps3_F",  "OPTRE_Jackal_Sniper_F", "OPTRE_Jackal_Sharpshooter_F", "OPTRE_Jackal_Major2_F", "OPTRE_FC_Elite_SpecOps", "OPTRE_FC_Elite_SpecOps2",  
+"OPTRE_FC_Elite_SpecOps4"]; 
+
+//Rare units to pick from
+_kosher_units_r = ["IMS_Elite_Melee_1", "IMS_Elite_Melee_2", "OPTRE_FC_Elite_Major", "OPTRE_FC_Elite_Ultra", "OPTRE_FC_Elite_Ultra3"]; 
+_rare_unit_chance = 20; 
+for "_p" from 1 to _num_groups do { 
+    if (count _buildings < 1) then { 
+        continue; 
+    }; 
+    _grp_cov = createGroup east;     
+ 
+    _house = objNull;
+    while {(count _buildings) > 0 && isNull _house} do {
+        _house = selectRandom _buildings;  
+        _buildings deleteAt (_buildings find _house);
+        {
+            if(_house inArea _x) then {
+                _house = objNull;
+            };
+        } forEach _restricted_markers;
+    };
+ 
+    _house = _house buildingPos -1; 
+    _house = _house call BIS_fnc_arrayShuffle;  
+ 
+    _mx_units = _max_per_building min ((count _house) - 1); 
+    for "_k" from 1 to floor(random [5, (5 + _mx_units)/2, _mx_units]) do { 
+        if (100 - (random 100) <= _rare_unit_chance) then { 
+            _grp_cov createUnit [selectRandom _kosher_units_r, [0, 0, 0], [], 0, "NONE"]; 
+        } else { 
+            _grp_cov createUnit [selectRandom _kosher_units_n, [0, 0, 0], [], 0, "NONE"]; 
+        }; 
+             
+    };  
+    _grp_cov enableDynamicSimulation true; 
+ 
+    _units = units _grp_cov;  
+    if (count _units > count _house) then {_units resize (count _house);}; 
+    { 
+        _x disableAI "PATH"; 
+        _x setUnitPos selectRandom ["UP","UP","MIDDLE"]; 
+        _x setPos (_house select _forEachIndex); 
+        _x addEventHandler["Fired",{params ["_unit"];_unit enableAI "PATH";_unit setUnitPos "AUTO";_unit removeEventHandler ["Fired",_thisEventHandler];}]; 
+        _x triggerDynamicSimulation false;
+    } foreach _units;   
+    
+    _grp_vip = createGroup west;
+    _grp_vip createUnit [selectRandom _vip_units, [0, 0, 0], [], 0, "NONE"]; 
+    _grp_vip enableDynamicSimulation true; 
+    
+    _vip = units _grp_vip select 0;
+    _vip setPos (_house select (count _units));
+    _vip setCaptive true;
+    
+    _vip_task_name = "vip_task_" + str _p;
+    _vip setVariable ["vip_task", _vip_task_name];
+    _vip setVariable ["freed", false];
+    [odst_team, _vip_task_name, ["Rescue the hostage from covenant forces.", "Rescue VIP", "marker"], getPos _vip, "ASSIGNED", 2, true, "HELP", false] call BIS_fnc_taskCreate;  
+
+
+    _vip switchMove "AmovPercMstpSsurWnonDnon";
+    _vip disableAI "ANIM";
+    _vip triggerDynamicSimulation false;
+    _vip addEventHandler ["Killed", {
+        params ["_unit", "_killer", "_instigator", "_useEffects"];
+        if (!( _unit getVariable "freed")) then { [_unit getVariable "vip_task", "FAILED"] call BIS_fnc_taskSetState; };
+        removeAllActions _unit;
+    }];
+    _vip addAction ["Free Hostage", {
+
+        params ["_target", "_caller", "_actionId", "_arguments"];
+
+        _target removeAction _actionId;
+
+        _target switchMove "";
+        _target enableAI "ANIM";
+        _target setCaptive false;
+
+        [_target getVariable "vip_task", "SUCCEEDED"] call BIS_fnc_taskSetState;
+        _target setVariable ["freed", true];
+        _wp = (group _target) addWaypoint [[[barcelonova_area_trigger], ["water"]] call BIS_fnc_randomPos, 0];
+        _wp setWaypointType "SCRIPTED";
+        _wp setWaypointScript "\z\lambs\addons\wp\scripts\fnc_wpRetreat.sqf";
+        
+        [_target] spawn { sleep 30; deleteVehicle (_this select 0)};
+    }, nil, 1.5, true, true, "", "true", 3, false, "", ""];
+
+};  

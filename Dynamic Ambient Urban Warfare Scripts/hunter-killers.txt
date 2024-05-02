@@ -1,0 +1,34 @@
+//Halo Universe hunter killer team script
+//Will generate three units at random >100 m from players to hunt them down and kill them
+//Use to spice up some of the urban warfare gameplay with higher-value targets
+//Requires LAMBS danger
+
+0 spawn {
+    while { true} do { 
+
+	//Trigger areas that we can pick from
+        _kosher_areas = [drop_pod_barcelona_anchor_1, drop_pod_barcelona_anchor_2, drop_pod_barcelona_anchor_3, drop_pod_barcelona_anchor_4, drop_pod_barcelona_anchor_5];
+
+
+        private _position =  [[selectRandom _kosher_areas ], ["water"], {     
+                        {_x distance _this > 100} count allPlayers > 0;
+        }] call BIS_fnc_randomPos;     
+
+	//Hunter killer units to pick from
+        _unit_list = ["IMS_Elite_Melee_2", "WBK_EliteMainWeap_8", "WBK_EliteMainWeap_5"];
+        _grp_cov = createGroup east;      
+
+        for "_k" from 1 to 3 do {  
+            _grp_cov createUnit [selectRandom _unit_list, _position, [], 0, "NONE"];  
+        };   
+
+        _units = units _grp_cov; 
+
+        _wp = _grp_cov addWaypoint [getPos barcelonova_area_trigger, 0]; 
+        _wp setWaypointType "SCRIPTED"; 
+        _wp setWaypointScript "\z\lambs\addons\wp\scripts\fnc_wpRush.sqf"; 
+    
+    	sleep floor(random [ 180, 300, 480 ]);  
+
+    };
+};
