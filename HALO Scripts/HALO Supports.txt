@@ -1,0 +1,51 @@
+//Put this inside your description.ext, add via e.g. [player, "Support_MAC_strike"] call BIS_fnc_addCommMenuItem;
+
+
+class CfgCommunicationMenu
+{
+	class Support_MAC_strike
+	{
+		text = "MAC Strike";		// Text displayed in the menu and in a notification
+		submenu = "";					// Submenu opened upon activation (expression is ignored when submenu is not empty.)
+		expression = "[_caller, _pos, _id] spawn {sleep 10; [_this select 1] call PHAN_ScifiSupportPlus_fnc_OPTRE_MACStrike; sleep 180; [_this select 0, 'Support_MAC_strike'] call BIS_fnc_addCommMenuItem;};";	// Code executed upon activation
+		icon = "\a3\Ui_f\data\GUI\Cfg\CommunicationMenu\cas_ca.paa";				// Icon displayed permanently next to the command menu
+		cursor = "\a3\Ui_f\data\IGUI\Cfg\Cursors\iconCursorSupport_ca.paa";				// Custom cursor displayed when the item is selected
+		enable = "cursorOnGround";					// Simple expression condition for enabling the item
+		removeAfterExpressionCall = 1;	// 1 to remove the item after calling
+	};
+
+	class Support_Archer_missiles
+	{
+		text = "Archer Missile Barrage";		// Text displayed in the menu and in a notification
+		submenu = "";					// Submenu opened upon activation (expression is ignored when submenu is not empty.)
+		expression = "[_caller, _pos, _id] spawn {[_this select 1, 100, 10] call PHAN_ScifiSupportPlus_fnc_OPTRE_Archermissile_Barrage; sleep 240; [_this select 0, 'Support_Archer_missiles'] call BIS_fnc_addCommMenuItem;};";	// Code executed upon activation
+		icon = "\a3\Ui_f\data\GUI\Cfg\CommunicationMenu\cas_ca.paa";				// Icon displayed permanently next to the command menu
+		cursor = "\a3\Ui_f\data\IGUI\Cfg\Cursors\iconCursorSupport_ca.paa";				// Custom cursor displayed when the item is selected
+		enable = "cursorOnGround";					// Simple expression condition for enabling the item
+		removeAfterExpressionCall = 1;	// 1 to remove the item after calling
+	};
+
+	class Support_Orbital_autocannon
+	{
+		text = "Orbital Autocannon Barrage";		// Text displayed in the menu and in a notification
+		submenu = "";					// Submenu opened upon activation (expression is ignored when submenu is not empty.)
+		expression = "[_caller, _pos, _id] spawn {sleep 10; [_this select 1, 50, 100] call PHAN_ScifiSupportPlus_fnc_OPTRE_Orbital_Autocannon; sleep 120; [_this select 0, 'Support_Orbital_autocannon'] call BIS_fnc_addCommMenuItem;};";	// Code executed upon activation
+		icon = "\a3\Ui_f\data\GUI\Cfg\CommunicationMenu\cas_ca.paa";				// Icon displayed permanently next to the command menu
+		cursor = "\a3\Ui_f\data\IGUI\Cfg\Cursors\iconCursorSupport_ca.paa";				// Custom cursor displayed when the item is selected
+		enable = "cursorOnGround";					// Simple expression condition for enabling the item
+		removeAfterExpressionCall = 1;	// 1 to remove the item after calling
+	};
+
+	class Support_Pelican_veh_warthog
+	{
+		text = "Pelican Warthog Drop";		// Text displayed in the menu and in a notification
+		submenu = "";					// Submenu opened upon activation (expression is ignored when submenu is not empty.)
+		expression = "[_caller, _pos, _id] spawn {[_this select 1, 'OPTRE_Pelican_armed', selectRandom ['OPTRE_M12_LRV', 'OPTRE_M12A1_LRV', 'OPTRE_M12G1_LRV', 'OPTRE_M12R_AA'], false, 1000, 315] call PHAN_ScifiSupportPlus_fnc_OPTRE_PelicanVehicleDrop; sleep 60; [_this select 0, 'Support_Pelican_veh_warthog'] call BIS_fnc_addCommMenuItem;};";	// Code executed upon activation
+        
+		icon = "\a3\Ui_f\data\GUI\Cfg\CommunicationMenu\supplydrop_ca.paa";				// Icon displayed permanently next to the command menu
+		cursor = "\a3\Ui_f\data\IGUI\Cfg\Cursors\iconCursorSupport_ca.paa";				// Custom cursor displayed when the item is selected
+		enable = "cursorOnGround";					// Simple expression condition for enabling the item
+		removeAfterExpressionCall = 1;	// 1 to remove the item after calling
+	};
+    
+};

@@ -1,0 +1,39 @@
+//Dynamically create some number of drop pods, scaled to the player count, to drop onto the map
+//Delete the comments and plop into a server only trigger to use
+
+[] spawn { 
+    _plyr_cnt = count allPlayers; 
+    _pod_radius = 1;
+
+    //Areas where pods are allowed to be dropped
+    _kosher_areas = [drop_pod_barcelona_anchor_1, drop_pod_barcelona_anchor_2, drop_pod_barcelona_anchor_3, drop_pod_barcelona_anchor_4, drop_pod_barcelona_anchor_5];
+    
+    //Percent chance of getting a hunter pod from
+    _hunter_chance = 5;
+
+    //How many pods per player
+    _player_count_scaling = 2;
+    for "_i" from 1 to (_plyr_cnt * _player_count_scaling) do {
+	//This allows the pods to drop onto OPTRE roads.  Feel free to change the classes inside nearestObject to something different to suit your needs (or the whole nearestObj statement to objNull to ignore special classes)
+
+        private _position =  [[selectRandom _kosher_areas ], ["water"], { 
+            !(_this isFlatEmpty [_pod_radius, -1, -1, -1, 0, false,  nearestObject [_this, "Land_Main_road_platform"]] isEqualTo []) 
+            || !(_this isFlatEmpty [_pod_radius, -1, -1, -1, 0, false,  nearestObject [_this, "Land_Service_road_platform"]] isEqualTo []) 
+            || !(_this isFlatEmpty [_pod_radius, -1, -1, -1, 0, false,  nearestObject [_this, "Land_main_road_long"]] isEqualTo []) 
+            || !(_this isFlatEmpty [_pod_radius, -1, -1, -1, 0, false,  nearestObject [_this, "Land_main_road_medium"]] isEqualTo []) 
+            || !(_this isFlatEmpty [_pod_radius, -1, -1, -1, 0, false,  nearestObject [_this, "Land_main_road_short"]] isEqualTo []) 
+            || !(_this isFlatEmpty [_pod_radius, -1, -1, -1, 0, false,  nearestObject [_this, "Land_service_road"]] isEqualTo []) 
+        }] call BIS_fnc_randomPos; 
+         
+        if (_position isEqualTo [0, 0]) then { 
+            continue; 
+        }; 
+         
+        if (random 101 <= (100 - _hunter_chance)) then { 
+            [_position, [east], selectRandom [1, 1, 2, 2, 2, 3, 4]] call PHAN_ScifiSupportPlus_fnc_COV_HeavyDropPod; 
+        } else { 
+            [_position, [east]] call PHAN_ScifiSupportPlus_fnc_COV_HunterDropPod; 
+        }; 
+         
+    } 
+}

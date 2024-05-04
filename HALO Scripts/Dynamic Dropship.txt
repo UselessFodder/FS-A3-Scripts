@@ -1,0 +1,36 @@
+//Dynamic dropship script; remove comments and plop down into a server-only trigger wherever you need.
+//Spawns a single dropship, can be looped to spawn multiple.
+
+//trigger where spawning the dropship is not allowed (use to prevent spawning too close)
+_blacklist_trigger = air_exclusion_zone;
+
+//Position where enemies are encamped, we want to drop off troops somewhere nearby
+_enemy_pos = getPos unsc_encamp;
+
+_spawnpos = [nil, ["ground", _blacklist_trigger]] call BIS_fnc_randomPos;
+_veh = createVehicle [selectRandom ["OPTRE_FC_Spirit", "OPTRE_FC_Spirit_Concussion"], [_spawnpos select 0, _spawnpos select 1, 50], [], 0, "FLY"];
+createVehicleCrew _veh;
+_grp = group driver _veh;
+
+_grp setCombatMode "WHITE";   
+_grp setBehaviour "CARELESS";   
+
+_landpos = [_enemy_pos, 30, 500, 3, 0, 20, 0] call BIS_fnc_findSafePos;
+
+
+
+_wp1 = _grp addWaypoint [_landpos, 5];
+_wp1 setWaypointType "MOVE";
+
+_wp2 = _grp addWaypoint [_landpos, 0];
+_wp2 setWaypointType "SCRIPTED";
+_wp2 setWaypointScript "A3\functions_f\waypoints\fn_wpLand.sqf";
+
+//This script spawns the bad guys, mostly modular but some things you can change:
+//1.  area_marker is the area where the action happens; we don't drop the guys if there are more than 100 opfor units in the area, to prevent server lag
+//2.  2 elites, 2 jackals, and 4 grunts are spawned, adjust the for loops as needed
+_wp2 setWaypointStatements ["true", "if (count (units opfor inAreaArray area_marker) < 100 && this inArea area_marker) then { _grp_elites = createGroup east; _grp_jackals = createGroup east; _grp_grunts = createGroup east; _elite_units = ['WBK_EliteMainWeap_3', 'WBK_EliteMainWeap_2', 'WBK_EliteMainWeap_6', 'IMS_Elite_Melee_1']; _jackal_units = ['OPTRE_Jackal_Major_F', 'OPTRE_Jackal_F', 'OPTRE_Jackal_Infantry_F', 'OPTRE_Jackal_Major2_F', 'OPTRE_Jackal_Marksman_F', 'OPTRE_Jackal_Sharpshooter_F', 'OPTRE_Jackal_Sniper_F']; _grunt_units = ['WBK_Grunt_2', 'WBK_Grunt_1', 'WBK_Grunt_5', 'WBK_Grunt_3']; for '_i' from 1 to 2 do { _grp_elites createUnit [selectRandom _elite_units, [getPos this select 0, getPos this select 1, 0], [], 0, 'NONE']; }; for '_j' from 1 to 2 do { _grp_jackals createUnit [selectRandom _jackal_units, [getPos this select 0, getPos this select 1, 0], [], 0, 'NONE']; }; for '_k' from 1 to 4 do { _grp_grunts createUnit [selectRandom _grunt_units, [getPos this select 0, getPos this select 1, 0], [], 0, 'NONE']; }; { _wp = _x addWaypoint [getPos unsc_encamp, 0]; _wp setWaypointType 'SCRIPTED'; _wp setWaypointScript '\z\lambs\addons\wp\scripts\fnc_wpRush.sqf';} forEach [_grp_elites, _grp_jackals, _grp_grunts]; }; this setCombatMode 'RED'; this setBehaviour 'COMBAT';"];
+
+_wp3 = _grp addWaypoint [_landpos, 0];
+_wp3 setWaypointType "SAD";
+
