@@ -1,10 +1,11 @@
 //Script to randomly spawn covenant groups around the map
 //Meant to be run on mission start, has a sleep statement to prevent server lag and dynamic sim is automatically enabled
 //Drop into a server-only script, remove comments, and let fly
-
-0 spawn {
-  	//Areas where Covenant are allowed to spawn
+//Requires OPTRE, LAMBS Danger (for dynamic respawn)
+0 spawn {  
+    	 //Areas where Covenant are allowed to spawn
         _kosher_areas = [area_marker];  
+
          _elite_units = ["WBK_EliteMainWeap_3", "WBK_EliteMainWeap_2", "WBK_EliteMainWeap_6", "IMS_Elite_Melee_1"];      
   
          _jackal_units = ["OPTRE_Jackal_Major_F", "OPTRE_Jackal_F", "OPTRE_Jackal_Infantry_F", "OPTRE_Jackal_Major2_F", "OPTRE_Jackal_Marksman_F", "OPTRE_Jackal_Sharpshooter_F", "OPTRE_Jackal_Sniper_F"];      
@@ -12,36 +13,44 @@
          _grunt_units = ["WBK_Grunt_2", "WBK_Grunt_1", "WBK_Grunt_5", "WBK_Grunt_3"];      
   
         _sleep_time = 0.1;  
+        _has_radio = 1;
+        _enableGroupReinforce = 1;
+        
         for "_l" from 1 to 10 do {  
             private _position =  [[selectRandom _kosher_areas ], ["water"], {       
                             {_x distance _this > 100} count allPlayers > 0 && !(_this isFlatEmpty [1, -1, -1, -1, 0, false,  objNull] isEqualTo []);  
             }] call BIS_fnc_randomPos;       
              
-         if (_position isEqualTo [0, 0]) then {  
-            continue;  
-         };  
-         _grp_elites = createGroup east;    
-         _grp_jackals = createGroup east;      
-         _grp_grunts = createGroup east;      
-  
-         for "_i" from 1 to random [1, 2, 4] do {       
-          _grp_elites createUnit [selectRandom _elite_units, [_position select 0, _position select 1, 0], [], 0, "NONE"];  
-          sleep _sleep_time;  
-         };      
-  
-         for "_j" from 1 to 2 do {       
-          _grp_jackals createUnit [selectRandom _jackal_units, [_position select 0, _position select 1, 0], [], 0, "NONE"];  
-          sleep _sleep_time;  
-         };      
-  
-         for "_k" from 1 to random[4, 6, 7] do {       
-           _grp_grunts createUnit [selectRandom _grunt_units, [_position select 0, _position select 1, 0], [], 0, "NONE"];     
-           sleep _sleep_time;  
-         };     
-           
-         _grp_elites enableDynamicSimulation true;  
-         _grp_jackals enableDynamicSimulation true;  
-         _grp_grunts enableDynamicSimulation true;  
+             if (_position isEqualTo [0, 0]) then {  
+                continue;  
+             };  
+             _grp_elites = createGroup east;    
+             _grp_jackals = createGroup east;      
+             _grp_grunts = createGroup east;      
+
+             for "_i" from 1 to random [1, 2, 4] do {       
+              _unit = _grp_elites createUnit [selectRandom _elite_units, [_position select 0, _position select 1, 0], [], 0, "NONE"];
+               [[_unit], _has_radio] execVM "\z\lambs\addons\danger\functions\ZEN\fnc_setHasRadio.sqf";
+              sleep _sleep_time;  
+             };      
+
+             for "_j" from 1 to 2 do {       
+              _unit = _grp_jackals createUnit [selectRandom _jackal_units, [_position select 0, _position select 1, 0], [], 0, "NONE"];
+               [[_unit], _has_radio] execVM "\z\lambs\addons\danger\functions\ZEN\fnc_setHasRadio.sqf";
+              sleep _sleep_time;  
+             };      
+
+             for "_k" from 1 to random[4, 6, 7] do {       
+               _unit = _grp_grunts createUnit [selectRandom _grunt_units, [_position select 0, _position select 1, 0], [], 0, "NONE"];   
+               [[_unit], _has_radio] execVM "\z\lambs\addons\danger\functions\ZEN\fnc_setHasRadio.sqf";
+
+               sleep _sleep_time;  
+             };     
+
+             {
+                _x enableDynamicSimulation true; 
+                [units _x, _enableGroupReinforce] execVM "\z\lambs\addons\danger\functions\ZEN\fnc_setReinforcement.sqf";
+             } forEach [_grp_elites, _grp_jackals, _grp_grunts];
           
         };      
 };  
